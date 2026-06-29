@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- EDITABLE: META_TITLE / META_DESCRIPTION (also in CONFIG in script.js) -->
+  <title>One Day Late</title>
+  <meta name="description" content="A treasure box, a key, and a letter. Sorry I'm late — but I'm here." />
+  <meta property="og:title" content="One Day Late" />
+  <meta property="og:description" content="A treasure box, a key, and a letter. Sorry I'm late — but I'm here." />
+  <meta property="og:type" content="website" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Tone.js for synthesized audio -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+  <style>
+/* ============================================================
+   ONE DAY LATE — style.css
+   A treasure box, a key, and a letter.
+   ============================================================ */
+
+/* ---------- ROOT : palette + typography ---------- */
+:root {
+  --bg:           #1a1512;
+  --bg-soft:      #241c17;
+  --wood-1:       #8b6f47;
+  --wood-2:       #a0825a;
+  --wood-3:       #6b4e3d;
+  --wood-dark:    #4a3624;
+  --paper:        #f5f0e6;
+  --paper-shade:  #ece4d3;
+  --ink:          #2c1810;
+  --ink-soft:     #5a3f2a;
+  --gold:         #c9a227;
+  --gold-bright:  #e6c34d;
+  --burgundy:     #8b2635;
+  --burgundy-dk:  #5a161f;
+  --brass:        #d4a574;
+  --brass-dk:     #a07a48;
+  --warm-white:   #fff8e7;
+  --velvet:       #3a1f24;
+  --velvet-dk:    #271318;
+  --font-hand:    'Caveat', cursive;
+  --font-body:    'EB Garamond', Georgia, serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.7;
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ambient warmth */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(201,162,39,0.10) 0%, rgba(201,162,39,0.04) 25%, transparent 55%),
+    radial-gradient(circle at 80% 100%, rgba(139,38,53,0.06), transparent 50%);
+  z-index: 1;
+  transition: filter 1.5s ease;
+}
+body.lamp-bright::before { filter: brightness(1.7) saturate(1.15); }
+body.lamp-bright { background: linear-gradient(180deg, #2a2018 0%, var(--bg) 45%); }
+
+/* Scroll progress */
+.scroll-progress {
+  position: fixed; top: 0; left: 0;
+  height: 2px; width: 0%;
+  background: linear-gradient(90deg, var(--gold), var(--brass));
+  z-index: 1000;
+  box-shadow: 0 0 8px rgba(201,162,39,0.6);
+  transition: width 0.1s linear;
+}
+
+/* Scene base */
+.scene { position: relative; width: 100%; z-index: 2; }
+.scene-box { min-height: 100vh; }
+.scene-letter, .scene-reveal { min-height: auto; padding: 6rem 1.5rem; }
+
+/* ============================================================
+   SCENE 1 — THE TREASURE BOX
+   ============================================================ */
+.scene-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.lamp-glow {
+  position: absolute;
+  top: 0; left: 0;
+  width: 70vw; height: 60vh;
+  background: radial-gradient(ellipse at 30% 20%,
+    rgba(255,220,150,0.22) 0%,
+    rgba(201,162,39,0.10) 30%,
+    transparent 60%);
+  pointer-events: none;
+  transition: filter 1.5s ease;
+  z-index: 1;
+}
+body.lamp-bright .lamp-glow { filter: brightness(1.5) saturate(1.1); }
+
+.box-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  z-index: 2;
+}
+
+/* ---- The treasure box ---- */
+.treasure-box {
+  position: relative;
+  width: 340px;
+  height: 260px;
+  perspective: 1200px;
+  flex-shrink: 0;
+}
+
+/* Base (front wall) */
+.box-base {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%;
+  height: 165px;
+  background:
+    repeating-linear-gradient(91deg,
+      transparent 0, rgba(0,0,0,0.04) 1px, transparent 3px,
+      rgba(255,230,180,0.025) 4px, transparent 6px),
+    repeating-linear-gradient(89deg,
+      transparent 0, rgba(74,54,36,0.10) 30px, transparent 70px,
+      rgba(255,220,160,0.03) 90px, transparent 130px),
+    linear-gradient(160deg, var(--wood-2) 0%, var(--wood-1) 40%, var(--wood-3) 85%, var(--wood-dark) 100%);
+  border-radius: 4px 4px 8px 8px;
+  box-shadow:
+    inset 0 -6px 18px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(255,230,180,0.12),
+    0 16px 36px -8px rgba(0,0,0,0.7),
+    0 6px 14px -4px rgba(0,0,0,0.5);
+  z-index: 1;
+}
+.base-grain {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg,
+    transparent 0, rgba(255,220,170,0.04) 1px, transparent 4px);
+  mix-blend-mode: overlay;
+  border-radius: inherit;
+}
+
+/* Brass corners */
+.brass-corner {
+  position: absolute;
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, var(--brass) 0%, var(--brass-dk) 100%);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,248,231,0.5),
+    inset 0 -2px 4px rgba(0,0,0,0.35),
+    0 1px 2px rgba(0,0,0,0.4);
+}
+.corner-bl { bottom: 8px; left: 8px; }
+.corner-br { bottom: 8px; right: 8px; }
+.corner-tl { top: 8px; left: 8px; }
+.corner-tr { top: 8px; right: 8px; }
+
+/* Brass straps (vertical bands on base) */
+.brass-strap {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 7px;
+  background: linear-gradient(90deg, var(--brass-dk) 0%, var(--brass) 50%, var(--brass-dk) 100%);
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+}
+.strap-left { left: 22%; }
+.strap-right { right: 22%; }
+
+/* Base nameplate */
+.base-plate {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px; height: 28px;
+  background: linear-gradient(160deg, var(--brass) 0%, var(--brass-dk) 100%);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,248,231,0.4),
+    inset 0 -2px 4px rgba(0,0,0,0.3),
+    0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Interior (velvet, inside the base) */
+.box-interior {
+  position: absolute;
+  top: 0; left: 3%;
+  width: 94%;
+  height: 100px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(201,162,39,0.10), transparent 60%),
+    linear-gradient(180deg, var(--velvet) 0%, var(--velvet-dk) 100%);
+  border-radius: 2px 2px 0 0;
+  overflow: hidden;
+  z-index: 2;
+  box-shadow: inset 0 6px 14px rgba(0,0,0,0.7);
+}
+.interior-velvet {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(115deg,
+    transparent 0, transparent 5px,
+    rgba(255,220,170,0.015) 6px, transparent 8px);
+}
+.interior-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255,220,150,0.35), transparent 65%);
+  opacity: 0;
+  transition: opacity 1s ease 0.4s;
+}
+.treasure-box.open .interior-glow { opacity: 1; }
+
+/* Letter inside the box */
+.letter-in-box {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  width: 58%;
+  height: 75px;
+  background: linear-gradient(180deg, var(--paper) 0%, var(--paper-shade) 100%);
+  border-radius: 2px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s,
+              opacity 0.5s ease 0.6s,
+              box-shadow 0.4s ease;
+  z-index: 3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.treasure-box.open .letter-in-box {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+.letter-in-box:hover, .letter-in-box:focus-visible {
+  transform: translateX(-50%) translateY(-5px) scale(1.04) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.6), 0 0 16px rgba(255,220,150,0.4);
+  outline: none;
+}
+.letter-in-box.lifted {
+  transform: translateX(-50%) translateY(-40px) scale(1.1) !important;
+  opacity: 0.7;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.letter-crease {
+  position: absolute;
+  left: 8%; right: 8%;
+  top: 50%;
+  height: 1px;
+  background: rgba(44,24,16,0.12);
+}
+.letter-ribbon {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px; height: 16px;
+  background: radial-gradient(circle, var(--burgundy) 30%, var(--burgundy-dk) 70%);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Lid (covers interior, opens backward) */
+.box-lid {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100px;
+  background:
+    repeating-linear-gradient(91deg,
+      transparent 0, rgba(0,0,0,0.04) 1px, transparent 3px,
+      rgba(255,230,180,0.025) 4px, transparent 6px),
+    repeating-linear-gradient(89deg,
+      transparent 0, rgba(74,54,36,0.10) 30px, transparent 70px),
+    linear-gradient(160deg, var(--wood-2) 0%, var(--wood-1) 50%, var(--wood-3) 100%);
+  border-radius: 14px 14px 2px 2px;
+  transform-origin: 50% 0%;
+  transition: transform 1.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 4;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,230,180,0.12);
+}
+.treasure-box.open .box-lid {
+  transform: rotateX(-128deg);
+}
+.lid-grain {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg,
+    transparent 0, rgba(255,220,170,0.04) 1px, transparent 4px);
+  mix-blend-mode: overlay;
+  border-radius: inherit;
+}
+
+/* Keyhole plate on lid */
+.keyhole-plate {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px; height: 54px;
+  background: linear-gradient(160deg, var(--brass) 0%, var(--brass-dk) 100%);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,248,231,0.45),
+    inset 0 -2px 4px rgba(0,0,0,0.35),
+    0 1px 3px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.keyhole {
+  position: relative;
+  width: 14px; height: 22px;
+}
+.keyhole::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 14px; height: 14px;
+  background: var(--bg);
+  border-radius: 50%;
+}
+.keyhole::after {
+  content: '';
+  position: absolute;
+  top: 10px; left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 12px;
+  background: var(--bg);
+}
+
+/* Hinges (behind lid, at top of base) */
+.hinge {
+  position: absolute;
+  top: 92px;
+  width: 28px; height: 10px;
+  background: linear-gradient(180deg, var(--brass-dk) 0%, var(--brass) 50%, var(--brass-dk) 100%);
+  border-radius: 2px 2px 0 0;
+  z-index: 5;
+  box-shadow: inset 0 1px 0 rgba(255,248,231,0.3), 0 1px 2px rgba(0,0,0,0.4);
+}
+.hinge-left { left: 18%; }
+.hinge-right { right: 18%; }
+
+/* ---- The key ---- */
+.key-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 5;
+}
+.key {
+  width: 52px; height: 104px;
+  cursor: pointer;
+  transform-origin: top center;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+  animation: keyGlow 2.2s ease-in-out infinite;
+}
+@keyframes keyGlow {
+  0%, 100% { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); }
+  50% { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)) drop-shadow(0 0 14px rgba(201,162,39,0.65)); }
+}
+.key:hover, .key:focus-visible {
+  transform: rotate(-8deg) translateY(-4px) scale(1.05);
+  animation: none;
+  outline: none;
+}
+.key-svg { width: 100%; height: 100%; display: block; }
+.key-glint {
+  position: absolute;
+  top: 18%; left: 40%;
+  width: 10px; height: 10px;
+  background: radial-gradient(circle, var(--warm-white), transparent 70%);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.key:hover .key-glint { animation: glint 1.2s ease-in-out infinite; }
+@keyframes glint {
+  0%, 100% { opacity: 0; transform: scale(0.6); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+.key-tag {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-hand);
+  font-size: 17px;
+  line-height: 1.15;
+  padding: 8px 12px 10px;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: rotate(-3deg);
+  transform-origin: top center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  transition: transform 0.4s ease, opacity 0.3s ease;
+  position: relative;
+}
+.key-tag::before {
+  content: '';
+  position: absolute;
+  top: -6px; left: 50%;
+  width: 8px; height: 8px;
+  background: var(--paper);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}
+.key-wrap:hover .key-tag { animation: sway 2.2s ease-in-out infinite; }
+@keyframes sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(2deg); }
+}
+
+/* ---- Tutorial hints ---- */
+.tutorial-hint {
+  position: absolute;
+  font-family: var(--font-hand);
+  font-size: 1.25rem;
+  color: var(--gold-bright);
+  text-align: center;
+  z-index: 10;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+  pointer-events: none;
+  animation: hintBob 1.6s ease-in-out infinite;
+}
+.tutorial-hint .hint-text { display: block; }
+.tutorial-hint .hint-arrow {
+  display: block;
+  font-size: 1.5rem;
+  margin-top: 2px;
+  line-height: 1;
+}
+@keyframes hintBob {
+  0%, 100% { transform: translate(var(--hint-x, -50%), 0); }
+  50% { transform: translate(var(--hint-x, -50%), 8px); }
+}
+
+/* Hint: above the key */
+.hint-key {
+  bottom: 100%;
+  left: 50%;
+  --hint-x: -50%;
+  margin-bottom: 8px;
+}
+
+/* Hint: above the box, pointing down at the letter */
+.hint-letter {
+  top: -42px;
+  left: 50%;
+  --hint-x: -50%;
+}
+
+/* ---- Caption ---- */
+.scene-caption {
+  position: absolute;
+  bottom: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: 26px;
+  color: var(--paper);
+  z-index: 4;
+  transition: opacity 0.8s ease;
+}
+.scene-caption .caption-line { display: block; }
+.scene-caption .muted { color: var(--brass); font-size: 20px; opacity: 0.85; }
+
+/* ============================================================
+   SCENE 2 — THE LETTER
+   ============================================================ */
+.scene-letter { padding-top: 2rem; }
+.letter-stage { position: relative; max-width: 680px; margin: 0 auto; }
+.paper {
+  position: relative;
+  background: var(--paper);
+  border-radius: 2px;
+  padding: 4rem 3.2rem 3.5rem;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  line-height: 2;
+  box-shadow:
+    0 20px 50px -10px rgba(0,0,0,0.7),
+    0 6px 14px rgba(0,0,0,0.4),
+    inset 0 0 0 1px rgba(0,0,0,0.04);
+  overflow: hidden;
+  min-height: 480px;
+}
+.paper-texture {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(139,111,71,0.05), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(139,111,71,0.04), transparent 40%),
+    repeating-linear-gradient(0deg, transparent 0, transparent 3px, rgba(139,111,71,0.012) 4px);
+  pointer-events: none;
+}
+.paper-lines {
+  position: absolute;
+  left: 0; right: 0;
+  top: 4rem; bottom: 3.5rem;
+  background: repeating-linear-gradient(0deg,
+    transparent 0, transparent 33px,
+    rgba(44,24,16,0.08) 34px, transparent 35px);
+  pointer-events: none;
+}
+.paper-deckle {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 8px;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.06)), var(--paper);
+  -webkit-mask: linear-gradient(90deg,
+    transparent 0%, var(--paper) 2%, var(--paper) 8%, transparent 10%,
+    var(--paper) 12%, var(--paper) 88%, transparent 90%, var(--paper) 92%, var(--paper) 98%, transparent 100%);
+  pointer-events: none;
+}
+.letter-text {
+  position: relative; z-index: 2;
+  white-space: pre-wrap; word-wrap: break-word;
+  min-height: 320px;
+}
+.letter-text p { margin-bottom: 1.2rem; }
+.letter-text p:last-child { margin-bottom: 0; }
+.letter-text .caret {
+  display: inline-block;
+  width: 2px; height: 1.1em;
+  background: var(--burgundy);
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: blink 0.9s steps(2) infinite;
+}
+@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+.letter-text .typo { color: var(--burgundy); opacity: 0.7; }
+
+.signature-block {
+  position: relative; z-index: 2;
+  margin-top: 2.4rem;
+  text-align: right;
+}
+.signature-draw {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+.signature-name {
+  display: inline-block;
+  font-family: var(--font-hand);
+  font-size: 2.6rem;
+  color: var(--burgundy);
+  font-weight: 600;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 2.4s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.signature-draw.drawn .signature-name { clip-path: inset(0 0 0 0); }
+.pen-nib {
+  position: absolute;
+  top: 50%; right: 0;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  transform: translate(50%, -50%);
+  opacity: 0;
+  box-shadow: 0 0 8px var(--gold-bright);
+}
+.signature-draw.drawing .pen-nib {
+  opacity: 1;
+  animation: penMove 2.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@keyframes penMove {
+  0% { right: 100%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { right: 0; opacity: 0; }
+}
+.signature-date {
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  margin-top: 0.3rem;
+}
+.skip-btn {
+  position: absolute;
+  right: 1rem; bottom: 0.6rem;
+  background: transparent;
+  border: 1px solid rgba(245,240,230,0.3);
+  color: var(--paper);
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 14px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, background 0.3s ease;
+}
+.skip-btn:hover { opacity: 1; background: rgba(245,240,230,0.08); }
+
+/* ============================================================
+   SCENE 3 — THE REVEAL
+   ============================================================ */
+.scene-reveal { text-align: center; padding-bottom: 6rem; }
+.question-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 620px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.question-block.shown { opacity: 1; transform: translateY(0); }
+.question-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.6rem, 4.5vw, 2.6rem);
+  line-height: 1.25;
+  color: var(--warm-white);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  margin-bottom: 0.2rem;
+}
+.no-no-note {
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+  color: var(--brass);
+  opacity: 0.85;
+  font-style: italic;
+  margin-bottom: 0.4rem;
+}
+.yes-button {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 0.25em;
+  color: var(--bg);
+  background: linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 60%, var(--brass-dk) 100%);
+  border: none;
+  padding: 1rem 3.4rem;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow:
+    0 8px 22px -6px rgba(201,162,39,0.55),
+    0 2px 6px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,248,231,0.6),
+    inset 0 -3px 6px rgba(0,0,0,0.18);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, filter 0.25s ease;
+  text-shadow: 0 1px 0 rgba(255,248,231,0.4);
+  animation: yesBreathe 2.4s ease-in-out infinite;
+}
+.yes-button:hover, .yes-button:focus-visible {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow:
+    0 14px 30px -6px rgba(201,162,39,0.7),
+    0 4px 10px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,248,231,0.7),
+    inset 0 -3px 6px rgba(0,0,0,0.2);
+  filter: brightness(1.08);
+  outline: none;
+}
+.yes-button:active { transform: translateY(-1px) scale(0.99); filter: brightness(0.95); }
+@keyframes yesBreathe {
+  0%, 100% { box-shadow: 0 8px 22px -6px rgba(201,162,39,0.45), 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,248,231,0.6), inset 0 -3px 6px rgba(0,0,0,0.18); }
+  50% { box-shadow: 0 12px 30px -4px rgba(201,162,39,0.65), 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,248,231,0.7), inset 0 -3px 6px rgba(0,0,0,0.18); }
+}
+.yes-button.pressed { animation: yesPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+@keyframes yesPop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); filter: brightness(1.4); }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.closing-line {
+  margin-top: 4rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  color: var(--gold-bright);
+  text-shadow: 0 2px 14px rgba(201,162,39,0.5);
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeInRise 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes fadeInRise { to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   EASTER EGGS
+   ============================================================ */
+.sticky-note {
+  position: fixed;
+  top: 24px; right: 24px;
+  width: 200px;
+  background: #f7e98e;
+  color: var(--ink);
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+  padding: 1.4rem 1rem 1.2rem;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+  transform: rotate(-3deg);
+  z-index: 999;
+  animation: stickyDrop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sticky-note p { margin-bottom: 0.3rem; }
+.sticky-tape {
+  position: absolute;
+  top: -8px; left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 60px; height: 18px;
+  background: rgba(255,255,255,0.35);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+@keyframes stickyDrop {
+  0% { transform: rotate(-3deg) translateY(-200%); opacity: 0; }
+  100% { transform: rotate(-3deg) translateY(0); opacity: 1; }
+}
+.heart-menu {
+  position: fixed;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+  z-index: 1001;
+  cursor: pointer;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.audio-toast {
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26,21,18,0.92);
+  color: var(--warm-white);
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(201,162,39,0.4);
+  z-index: 998;
+  animation: fadeIn 0.4s ease, fadeOut 0.4s ease 3.5s forwards;
+}
+@keyframes fadeOut { to { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+
+/* ============================================================
+   RESPONSIVE — TABLET
+   ============================================================ */
+@media (max-width: 900px) {
+  .box-stage { gap: 2.5rem; }
+  .treasure-box { width: 300px; height: 230px; }
+  .box-base { height: 145px; }
+  .box-interior { height: 88px; }
+  .box-lid { height: 88px; }
+  .hinge { top: 82px; }
+  .letter-in-box { height: 65px; }
+  .paper { padding: 3rem 2rem 2.5rem; }
+  .signature-name { font-size: 2.2rem; }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE
+   ============================================================ */
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .scene-box { min-height: 100svh; }
+
+  /* Stack the box and key vertically */
+  .box-stage { flex-direction: column; gap: 2rem; }
+
+  .treasure-box { width: 280px; height: 215px; }
+  .box-base { height: 135px; }
+  .box-interior { height: 82px; }
+  .box-lid { height: 82px; }
+  .hinge { top: 76px; }
+  .letter-in-box { width: 62%; height: 62px; }
+  .keyhole-plate { width: 36px; height: 48px; }
+  .brass-corner { width: 22px; height: 22px; }
+
+  .key { width: 42px; height: 84px; }
+  .key-tag { font-size: 14px; padding: 6px 9px 8px; }
+
+  .scene-caption { font-size: 22px; bottom: 3%; }
+  .scene-caption .muted { font-size: 16px; }
+  .tutorial-hint { font-size: 1.05rem; }
+
+  /* Letter scrollable */
+  .scene-letter { padding: 4rem 0.8rem; }
+  .paper {
+    padding: 2.2rem 1.4rem 2rem;
+    font-size: 1.05rem;
+    line-height: 1.85;
+  }
+  .paper-lines { top: 2.2rem; bottom: 2rem; }
+  .signature-name { font-size: 1.9rem; }
+  .skip-btn { font-size: 0.9rem; padding: 0.3rem 0.7rem; }
+
+  /* Question + YES */
+  .question-text { font-size: 1.5rem; }
+  .no-no-note { font-size: 0.95rem; }
+  .yes-button { font-size: 1.3rem; padding: 0.8rem 2.4rem; letter-spacing: 0.2em; }
+  .closing-line { font-size: 1.3rem; margin-top: 3rem; }
+
+  .sticky-note { width: 160px; top: 12px; right: 12px; font-size: 0.95rem; }
+}
+
+@media (max-width: 380px) {
+  .treasure-box { width: 250px; height: 195px; }
+  .box-base { height: 122px; }
+  .box-interior { height: 74px; }
+  .box-lid { height: 74px; }
+  .hinge { top: 68px; }
+  .yes-button { font-size: 1.1rem; padding: 0.7rem 1.8rem; }
+  .question-text { font-size: 1.3rem; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.1s !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* Print */
+@media print {
+  body { background: white; color: black; }
+  .scene-box, .scene-reveal, .scroll-progress, .sticky-note, .skip-btn { display: none; }
+  .scene-letter { padding: 0; }
+  .paper { box-shadow: none; }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- Scroll progress indicator -->
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       SCENE 1 — THE TREASURE BOX
+       A wooden treasure box with a brass key beside it.
+       Tap the key → it flies to the keyhole → lid opens →
+       letter revealed inside. Tap the letter → letter scene.
+  ============================================================ -->
+  <section id="scene-box" class="scene scene-box">
+    <div class="lamp-glow" id="lampGlow" aria-hidden="true"></div>
+
+    <div class="box-stage">
+      <!-- The treasure box -->
+      <div class="treasure-box" id="treasureBox">
+
+        <!-- Hinges (at the back, visible above the lid) -->
+        <div class="hinge hinge-left" aria-hidden="true"></div>
+        <div class="hinge hinge-right" aria-hidden="true"></div>
+
+        <!-- Interior (velvet, revealed when lid opens) -->
+        <div class="box-interior" aria-hidden="true">
+          <div class="interior-velvet"></div>
+          <div class="interior-glow" id="interiorGlow"></div>
+        </div>
+
+        <!-- The letter sitting inside the box (tappable) -->
+        <div class="letter-in-box" id="letterInBox" role="button" tabindex="0"
+             aria-label="Open the letter">
+          <div class="letter-crease" aria-hidden="true"></div>
+          <div class="letter-ribbon" aria-hidden="true"></div>
+        </div>
+
+        <!-- Lid (covers the interior, opens backward) -->
+        <div class="box-lid" id="boxLid">
+          <div class="lid-grain" aria-hidden="true"></div>
+          <div class="keyhole-plate" id="keyholePlate">
+            <div class="keyhole" aria-hidden="true"></div>
+          </div>
+          <div class="brass-corner corner-tl" aria-hidden="true"></div>
+          <div class="brass-corner corner-tr" aria-hidden="true"></div>
+        </div>
+
+        <!-- Base (front wall, always visible) -->
+        <div class="box-base">
+          <div class="base-grain" aria-hidden="true"></div>
+          <div class="brass-corner corner-bl" aria-hidden="true"></div>
+          <div class="brass-corner corner-br" aria-hidden="true"></div>
+          <div class="brass-strap strap-left" aria-hidden="true"></div>
+          <div class="brass-strap strap-right" aria-hidden="true"></div>
+          <div class="base-plate" aria-hidden="true"></div>
+        </div>
+
+        <!-- Tutorial hint: tap the letter (appears after box opens) -->
+        <div class="tutorial-hint hint-letter" id="hintLetter" hidden>
+          <span class="hint-text">tap the letter</span>
+          <span class="hint-arrow" aria-hidden="true">↓</span>
+        </div>
+      </div>
+
+      <!-- The brass key (beside the box) -->
+      <div class="key-wrap" id="keyWrap">
+        <!-- Tutorial hint: tap the key -->
+        <div class="tutorial-hint hint-key" id="hintKey">
+          <span class="hint-text">tap the key</span>
+          <span class="hint-arrow" aria-hidden="true">↓</span>
+        </div>
+
+        <div class="key" id="key" role="button" tabindex="0"
+             aria-label="Pick up the key. For you. Sorry I'm late.">
+          <svg viewBox="0 0 80 160" class="key-svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="brassGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#f0d9a0" />
+                <stop offset="40%" stop-color="#d4a574" />
+                <stop offset="100%" stop-color="#a07a48" />
+              </linearGradient>
+            </defs>
+            <!-- bow (head) -->
+            <circle cx="40" cy="26" r="18" fill="none" stroke="url(#brassGrad)" stroke-width="7" />
+            <circle cx="40" cy="26" r="9" fill="none" stroke="url(#brassGrad)" stroke-width="3" />
+            <!-- shank -->
+            <rect x="36" y="42" width="8" height="88" rx="2" fill="url(#brassGrad)" />
+            <!-- teeth -->
+            <path d="M 44 110 L 56 110 L 56 118 L 48 118 L 48 126 L 56 126 L 56 134 L 44 134 Z" fill="url(#brassGrad)" />
+          </svg>
+          <div class="key-glint" aria-hidden="true"></div>
+        </div>
+
+        <div class="key-tag" aria-hidden="true">
+          <span>For you.</span>
+          <span>Sorry I'm late.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scene-caption" id="boxCaption">
+      <p class="caption-line">Something's locked.</p>
+      <p class="caption-line muted">The key is right here.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCENE 2 — THE LETTER
+       Cream paper with guide lines. Text writes itself word by
+       word. Signature draws itself via clip-path animation.
+       LETTER_TEXT and SIGNATURE_NAME are editable in CONFIG.
+  ============================================================ -->
+  <section id="scene-letter" class="scene scene-letter">
+    <div class="letter-stage">
+      <div class="paper" id="letterPaper">
+        <div class="paper-texture" aria-hidden="true"></div>
+        <div class="paper-lines" aria-hidden="true"></div>
+        <div class="paper-deckle" aria-hidden="true"></div>
+
+        <div class="letter-text" id="letterText" aria-live="polite"></div>
+
+        <div class="signature-block" id="signatureBlock" hidden>
+          <div class="signature-draw" id="signatureDraw">
+            <span class="signature-name" id="signatureName"></span>
+            <span class="pen-nib" id="penNib" aria-hidden="true"></span>
+          </div>
+          <div class="signature-date" id="signatureDate"></div>
+        </div>
+      </div>
+
+      <button class="skip-btn" id="skipBtn" type="button" hidden>skip to end →</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCENE 3 — THE REVEAL
+       Question + YES button → lamp brightens, closing message.
+  ============================================================ -->
+  <section id="scene-reveal" class="scene scene-reveal">
+    <div class="question-block" id="questionBlock">
+      <h2 class="question-text">Will you please forgive me for being late?</h2>
+      <p class="no-no-note">there's no option for "no"</p>
+      <button class="yes-button" id="yesButton" type="button">YES</button>
+    </div>
+
+    <div class="closing-line" id="closingLine" hidden>
+      <p>You're mine forever!</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       EASTER EGG: sticky note (returning to tab after 1+ min)
+  ============================================================ -->
+  <div class="sticky-note" id="stickyNote" hidden>
+    <p>I waited for you to come back.</p>
+    <p>I'll always wait.</p>
+    <span class="sticky-tape" aria-hidden="true"></span>
+  </div>
+
+  <!-- ============================================================
+       EASTER EGG: custom context menu on letter
+  ============================================================ -->
+  <div class="heart-menu" id="heartMenu" hidden>Copy my heart? ❤</div>
+
+  <!-- Audio start toast -->
+  <div class="audio-toast" id="audioToast" hidden>
+    <span>sound is on — rain, a clock, a pencil.</span>
+  </div>
+
+  <script>
+/* ============================================================
+   ONE DAY LATE — script.js
+   ============================================================
+   All editable content lives in CONFIG below.
+   Replace the strings with your own words, photos, and name.
+   ============================================================ */
+
+const CONFIG = {
+  /* ---------- META ---------- */
+  // Browser tab title + link preview description
+  META_TITLE: `One Day Late`,
+  META_DESCRIPTION: `A drawer, thirty memories, and a letter. Sorry I'm late — but I'm here.`,
+
+  /* ---------- LETTER_TEXT ----------
+     The main letter body. Use blank lines to separate paragraphs.
+     Words appear one-by-one as if hand-written, with the odd
+     authentic "mistake" that gets backspaced and corrected.
+  */
+  LETTER_TEXT: `My love,
+
+I owe you an apology and a month. Both fit in this drawer.
+
+Thirty days ago, you said yes to something uncertain — to me, to this, to whatever we are becoming. I meant to mark the day properly. I meant flowers at the door and words spoken out loud. Instead I'm one day late, and the only excuse I have is that I wanted to get it right, and getting it right took longer than the calendar allowed.
+
+So I built you a drawer.
+
+Open it. Every day is in here — the small ones and the ones I didn't know how to say out loud yet. Turn them over when you like. Some of the backs say things the fronts couldn't.
+
+At the bottom, under everything, there's a letter. This one. The one you're reading now, in my handwriting that you'll have to forgive. I'm not good at dates. I'm good at you. I'm good at waking up and choosing this again, every morning, including the morning I forgot was the morning.
+
+One month. One day late. Entirely yours.`,
+
+  /* ---------- SIGNATURE ----------
+     Drawn in a cursive hand after the letter finishes.
+     SIGNATURE_DATE appears beneath, smaller.
+  */
+  SIGNATURE_NAME: `Always, me`,
+  SIGNATURE_DATE: `one day late, of course`,
+};
+
+/* ============================================================
+   AUDIO ENGINE (Tone.js, fully synthesized, no files)
+   ============================================================ */
+const Audio = {
+  ready: false,
+  started: false,
+  rain: null,
+  clock: null,
+
+  async start() {
+    if (this.started) return;
+    try {
+      await Tone.start();
+      Tone.Transport.bpm.value = 60;
+      Tone.Transport.start();
+
+      // --- Rain: filtered noise, continuous, soft ---
+      const rainNoise = new Tone.Noise('brown').start();
+      const rainFilter = new Tone.Filter({ type: 'lowpass', frequency: 800, Q: 0.5 });
+      const rainGain = new Tone.Gain(0.08).toDestination();
+      rainNoise.chain(rainFilter, rainGain);
+      this.rain = { gain: rainGain };
+      // gentle rain volume swell
+      rainGain.gain.rampTo(0.12, 4);
+
+      // --- Clock ticking: a soft click every second ---
+      const clockSynth = new Tone.MembraneSynth({
+        pitchDecay: 0.008,
+        octaves: 2,
+        oscillator: { type: 'sine' },
+        envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
+      }).toDestination();
+      clockSynth.volume.value = -28;
+      const tickLoop = new Tone.Loop((time) => {
+        clockSynth.triggerAttackRelease('C6', '64n', time);
+      }, '4n'); // 1 beat = 1s at 60bpm
+      tickLoop.start(0);
+      this.clock = tickLoop;
+
+      this.started = true;
+      this.ready = true;
+
+      // brief toast
+      const toast = document.getElementById('audioToast');
+      if (toast) {
+        toast.hidden = false;
+        setTimeout(() => { toast.hidden = true; }, 4200);
+      }
+    } catch (e) {
+      // Audio failed — experience continues silently
+      console.warn('Audio could not start:', e);
+    }
+  },
+
+  // Mechanical click (key, drawer, flips)
+  click() {
+    if (!this.ready) return;
+    try {
+      const s = new Tone.MembraneSynth({
+        pitchDecay: 0.003, octaves: 1.5,
+        envelope: { attack: 0.001, decay: 0.08, sustain: 0, release: 0.05 }
+      }).toDestination();
+      s.volume.value = -18;
+      s.triggerAttackRelease('G3', '32n');
+      setTimeout(() => s.dispose(), 200);
+    } catch (e) {}
+  },
+
+  // Wooden creak — the treasure box lid opening
+  creak() {
+    if (!this.ready) return;
+    try {
+      const osc = new Tone.Oscillator({ type: 'sawtooth', frequency: 60 }).start();
+      const filter = new Tone.Filter({ type: 'lowpass', frequency: 300, Q: 5 });
+      const gain = new Tone.Gain(0).toDestination();
+      osc.chain(filter, gain);
+      const now = Tone.now();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.07, now + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+      osc.frequency.rampTo(140, 0.7);
+      setTimeout(() => { osc.dispose(); filter.dispose(); gain.dispose(); }, 1200);
+    } catch (e) {}
+  },
+
+  // Pencil scratch — short filtered noise burst
+  scratch() {
+    if (!this.ready) return;
+    try {
+      const n = new Tone.Noise('white').start();
+      const f = new Tone.Filter({ type: 'bandpass', frequency: 2400, Q: 1.2 });
+      const g = new Tone.Gain(0).toDestination();
+      n.chain(f, g);
+      const now = Tone.now();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.04, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      setTimeout(() => { n.dispose(); f.dispose(); g.dispose(); }, 120);
+    } catch (e) {}
+  },
+
+  // Paper rustle — when the letter is picked up
+  paperRustle() {
+    if (!this.ready) return;
+    try {
+      const n = new Tone.Noise('white').start();
+      const f = new Tone.Filter({ type: 'highpass', frequency: 2000, Q: 1 });
+      const g = new Tone.Gain(0).toDestination();
+      n.chain(f, g);
+      const now = Tone.now();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.035, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      setTimeout(() => { n.dispose(); f.dispose(); g.dispose(); }, 350);
+    } catch (e) {}
+  },
+
+  // Soft chime when accepted
+  chime() {
+    if (!this.ready) return;
+    try {
+      const s = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.02, decay: 0.6, sustain: 0.1, release: 1.2 }
+      }).toDestination();
+      s.volume.value = -16;
+      const now = Tone.now();
+      s.triggerAttackRelease(['C4', 'E4', 'G4'], '2n', now);
+      s.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '2n', now + 0.4);
+      setTimeout(() => s.dispose(), 2000);
+    } catch (e) {}
+  }
+};
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const rand = (min, max) => Math.random() * (max - min) + min;
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+/* ============================================================
+   SCENE 1 — THE TREASURE BOX
+   Tap the key → key flies to keyhole → lid opens → letter
+   revealed → tap letter → letter scene begins.
+   ============================================================ */
+function initTreasureBox() {
+  const key = $('#key');
+  const keyWrap = $('#keyWrap');
+  const keyTag = keyWrap.querySelector('.key-tag');
+  const treasureBox = $('#treasureBox');
+  const letterInBox = $('#letterInBox');
+  const hintKey = $('#hintKey');
+  const hintLetter = $('#hintLetter');
+  const boxCaption = $('#boxCaption');
+  const keyholePlate = $('#keyholePlate');
+
+  let keyUsed = false;
+  let letterOpened = false;
+
+  async function pickUpKey() {
+    if (keyUsed) return;
+    keyUsed = true;
+    await Audio.start();
+
+    // Hide tutorial hint + caption
+    hintKey.hidden = true;
+    if (boxCaption) boxCaption.style.opacity = '0';
+    key.style.pointerEvents = 'none';
+
+    // Calculate the distance from the key to the keyhole
+    const keyRect = key.getBoundingClientRect();
+    const holeRect = keyholePlate.getBoundingClientRect();
+    const dx = (holeRect.left + holeRect.width / 2) - (keyRect.left + keyRect.width / 2);
+    const dy = (holeRect.top + holeRect.height / 2) - (keyRect.top + keyRect.height / 2);
+
+    // Fade out the tag
+    keyTag.style.transition = 'opacity 0.3s ease';
+    keyTag.style.opacity = '0';
+
+    // Fly the key to the keyhole
+    key.style.transition = 'transform 0.75s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease 0.55s';
+    key.style.transform = `translate(${dx}px, ${dy}px) rotate(-12deg) scale(0.4)`;
+    key.style.opacity = '0';
+
+    await sleep(550);
+    Audio.click(); // key inserts into keyhole
+    await sleep(250);
+
+    // Open the box
+    treasureBox.classList.add('open');
+    Audio.creak();
+
+    await sleep(1300);
+
+    // Show the "tap the letter" hint
+    hintLetter.hidden = false;
+  }
+
+  key.addEventListener('click', pickUpKey);
+  key.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickUpKey(); }
+  });
+
+  async function openLetter() {
+    if (letterOpened) return;
+    letterOpened = true;
+    hintLetter.hidden = true;
+    letterInBox.classList.add('lifted');
+    Audio.paperRustle();
+
+    await sleep(550);
+    $('#scene-letter').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    await sleep(800);
+    startLetter();
+  }
+
+  letterInBox.addEventListener('click', openLetter);
+  letterInBox.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLetter(); }
+  });
+}
+
+/* ============================================================
+   SCENE 4 — LETTER TYPING
+   ============================================================ */
+let letterCancelled = false;
+
+async function startLetter() {
+  const textEl = $('#letterText');
+  const skipBtn = $('#skipBtn');
+  const sigBlock = $('#signatureBlock');
+  if (textEl.dataset.started === '1') return;
+  textEl.dataset.started = '1';
+
+  // "skip to end" button appears after 5 seconds (per spec)
+  const skipTimer = setTimeout(() => { skipBtn.hidden = false; }, 5000);
+
+  const paragraphs = CONFIG.LETTER_TEXT.split(/\n\n+/);
+  const caret = '<span class="caret"></span>';
+
+  for (let pi = 0; pi < paragraphs.length; pi++) {
+    if (letterCancelled) break;
+    const p = document.createElement('p');
+    textEl.appendChild(p);
+    const words = paragraphs[pi].split(/\s+/);
+    for (let wi = 0; wi < words.length; wi++) {
+      if (letterCancelled) break;
+      const word = words[wi];
+
+      // occasional typo (5% chance, not on first word of paragraph)
+      if (wi > 0 && Math.random() < 0.05) {
+        const typo = word + String.fromCharCode(97 + Math.floor(Math.random() * 26));
+        p.innerHTML = p.innerHTML.replace(caret, '') + `<span class="typo">${escapeHtml(typo)}</span>` + caret;
+        Audio.scratch();
+        await sleep(rand(180, 320));
+        // backspace: remove typo span, caret remains
+        p.innerHTML = p.innerHTML.replace(/<span class="typo">[^<]*<\/span>/, '');
+        await sleep(rand(80, 160));
+      }
+
+      // type the real word
+      const before = p.innerHTML.replace(caret, '');
+      p.innerHTML = before + escapeHtml(word) + caret;
+      Audio.scratch();
+      await sleep(rand(90, 180));
+      if (wi < words.length - 1) {
+        p.innerHTML = p.innerHTML.replace(caret, '') + ' ' + caret;
+      }
+    }
+    p.innerHTML = p.innerHTML.replace(caret, '');
+  }
+
+  if (letterCancelled) {
+    // render full text immediately
+    textEl.innerHTML = '';
+    CONFIG.LETTER_TEXT.split(/\n\n+/).forEach(par => {
+      const p = document.createElement('p');
+      p.textContent = par;
+      textEl.appendChild(p);
+    });
+  }
+
+  clearTimeout(skipTimer);
+  skipBtn.hidden = true;
+  await sleep(400);
+  await drawSignature();
+}
+
+async function drawSignature() {
+  const sigBlock = $('#signatureBlock');
+  const sigDraw = $('#signatureDraw');
+  const nameEl = $('#signatureName');
+  const dateEl = $('#signatureDate');
+
+  nameEl.textContent = CONFIG.SIGNATURE_NAME;
+  dateEl.textContent = CONFIG.SIGNATURE_DATE;
+  sigBlock.hidden = false;
+
+  await sleep(200);
+  sigDraw.classList.add('drawing');
+  // pencil-like scratching during the draw
+  let scratches = 0;
+  const scratchInterval = setInterval(() => {
+    Audio.scratch();
+    scratches++;
+    if (scratches > 8) clearInterval(scratchInterval);
+  }, 280);
+
+  await sleep(50);
+  sigDraw.classList.add('drawn');
+
+  setTimeout(() => {
+    clearInterval(scratchInterval);
+    sigDraw.classList.remove('drawing');
+    // reveal the accept checkbox
+    revealAcceptCheckbox();
+  }, 2500);
+}
+
+function revealAcceptCheckbox() {
+  const reveal = $('#scene-reveal');
+  // scroll to it gently
+  setTimeout(() => {
+    reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 400);
+}
+
+function initSkipButton() {
+  const skipBtn = $('#skipBtn');
+  skipBtn.addEventListener('click', () => {
+    letterCancelled = true;
+    skipBtn.hidden = true;
+  });
+}
+
+/* ============================================================
+   SCENE 4 — THE REVEAL (question + YES button)
+   ============================================================ */
+function initReveal() {
+  const yesBtn = $('#yesButton');
+  const questionBlock = $('#questionBlock');
+  const closingLine = $('#closingLine');
+
+  // Reveal the question block with a soft fade when the signature finishes
+  setTimeout(() => { questionBlock.classList.add('shown'); }, 200);
+
+  yesBtn.addEventListener('click', async () => {
+    if (yesBtn.classList.contains('pressed')) return;
+    yesBtn.classList.add('pressed');
+    document.body.classList.add('lamp-bright');
+    Audio.chime();
+
+    await sleep(700);
+    closingLine.hidden = false;
+    // gentle scroll so the closing line is visible
+    closingLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
+/* ============================================================
+   EASTER EGGS
+   ============================================================ */
+
+// 1. Konami code removed (was polaroid-based)
+
+// 2. Triple-click wax seal — handled in initEnvelope()
+
+// 3. Tab leave + return after 1+ min → sticky note
+function initTabReturn() {
+  let hiddenTime = null;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      hiddenTime = Date.now();
+    } else {
+      if (hiddenTime && (Date.now() - hiddenTime) >= 60000) {
+        showStickyNote();
+      }
+      hiddenTime = null;
+    }
+  });
+  // also handle window blur/focus as fallback
+  let blurTime = null;
+  window.addEventListener('blur', () => { blurTime = Date.now(); });
+  window.addEventListener('focus', () => {
+    if (blurTime && (Date.now() - blurTime) >= 60000) {
+      showStickyNote();
+    }
+    blurTime = null;
+  });
+}
+
+function showStickyNote() {
+  const note = $('#stickyNote');
+  if (!note || note.hidden === false) return;
+  note.hidden = false;
+  Audio.click();
+  // dismiss on click
+  note.addEventListener('click', () => { note.hidden = true; }, { once: true });
+}
+
+// 4. Right-click on letter → custom "Copy my heart? ❤" menu
+function initHeartMenu() {
+  const letter = $('#letterPaper');
+  const menu = $('#heartMenu');
+  if (!letter || !menu) return;
+
+  letter.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    menu.hidden = false;
+    menu.style.left = `${Math.min(e.clientX, window.innerWidth - 180)}px`;
+    menu.style.top = `${Math.min(e.clientY, window.innerHeight - 50)}px`;
+  });
+
+  document.addEventListener('click', () => { menu.hidden = true; });
+  document.addEventListener('scroll', () => { menu.hidden = true; }, { passive: true });
+  menu.addEventListener('click', () => { menu.hidden = true; });
+}
+
+/* ============================================================
+   SCROLL PROGRESS BAR
+   ============================================================ */
+function initScrollProgress() {
+  const bar = $('#scrollProgress');
+  const update = () => {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    bar.style.width = `${Math.min(100, scrolled * 100)}%`;
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+}
+
+/* ============================================================
+   APPLY META
+   ============================================================ */
+function applyMeta() {
+  document.title = CONFIG.META_TITLE;
+  const desc = document.querySelector('meta[name="description"]');
+  if (desc) desc.setAttribute('content', CONFIG.META_DESCRIPTION);
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.setAttribute('content', CONFIG.META_TITLE);
+  const ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) ogDesc.setAttribute('content', CONFIG.META_DESCRIPTION);
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  applyMeta();
+  initTreasureBox();
+  initSkipButton();
+  initReveal();
+  initTabReturn();
+  initHeartMenu();
+  initScrollProgress();
+});
+
+</script>
+</body>
+</html>
